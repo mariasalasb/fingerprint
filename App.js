@@ -1,72 +1,26 @@
 import React, {Component, useState,useEffect} from 'react';
 import {View, Text, StyleSheet, Button} from 'react-native';
-import ReactNativeBiometrics from 'react-native-biometrics'
-const jsonWebToken=require('jsonwebtoken');
-const myJWTSecretKey= 'adafrtw445!def_?gdf';
+import ReactNativeBiometrics from 'react-native-biometrics';
+import PINCode, { hasUserSetPinCode } from '@haskkor/react-native-pincode';
 
 
-
- 
 
 const borrarKeys = ()=>{
   ReactNativeBiometrics.deleteKeys()
   .then((success) => {
     if (success) {
       console.log('Successful deletion')
-      alert('Successful deletion')
+      //alert('Successful deletion')
     } else {
       console.log('Unsuccessful deletion')
-      alert('Unsuccessful deletion')
+      //alert('Unsuccessful deletion')
     }
   })
 }
 
 
-const Touch=()=>{
-  return <View style={styles.view}>
-  <Text style={styles.text}> TOUCH ID</Text>
-  <Button 
-  onPress={borrarKeys} 
-  title="Log in"></Button>
-</View>
-}
 
-const Face=()=>{
-return (<View style={styles.view}>
-<Text style={styles.text}> FACE ID</Text>
-<Button 
-onPress={borrarKeys} 
-title="Log in"></Button>
-</View>)
-}
 
-const Biom=()=>{
-
-return (<View style={styles.view}>
-<Text style={styles.text}> BIOMETRICX</Text>
-<Button 
-onPress={borrarKeys} 
-title="Log in"></Button>
-</View>)
-}
-
-const User=()=>{
-return (<View style={styles.view}>
-<Text style={styles.text}> USER PASS</Text>
-<Button 
-onPress={borrarKeys} 
-title="Log in"></Button>
-</View>)
-}
-
-const Logged=()=>{
-  return (<View style={styles.view}>
-  <Text style={styles.text}> LOGged</Text>
-  <Button 
-  onPress={borrarKeys} 
-  title="Log in"></Button>
-  </View>)
-  }
 
 
 
@@ -74,6 +28,137 @@ function App() {
   const[biometricType,setBiometricType] = useState('');
   const [keyPublic, setKeyPublic]=useState('');
   const [validToken, setValidToken]=useState('');
+  const[showPinLock, setShowPinLock]=useState(false);
+  const[PINCodeStatus, setPINCodeStatus]=useState('choose');
+  const [errorHuella, setErrorHuella]=useState(0);
+
+  const Touch=()=>{
+    return <View style={styles.view}>
+    <Text style={styles.text}> TOUCH ID</Text>
+    <Button 
+    onPress={keysExist} 
+    title="Log in"></Button>
+  </View>
+  }
+  
+  const Face=()=>{
+  return (<View style={styles.view}>
+  <Text style={styles.text}> FACE ID</Text>
+  <Button 
+  onPress={keysExist} 
+  title="Log in"></Button>
+  </View>)
+  }
+  
+  const Biom=()=>{
+  
+  return (<View style={styles.view}>
+  <Text style={styles.text}> BIOMETRICX</Text>
+  <Button 
+  onPress={keysExist} 
+  title="Log in"></Button>
+  </View>)
+  }
+  
+  const Biom2=()=>{
+  
+    return (<View style={styles.view}>
+    <Text style={styles.text}> BIOM 2</Text>
+    <Button 
+    onPress={_showEnterPinLock} 
+    title="Log in"></Button>
+    </View>)
+    }
+  
+  const User=()=>{
+  return (<View style={styles.view}>
+  <Text style={styles.text}> USER PASS</Text>
+  <Button 
+  onPress={keysExist} 
+  title="Log in"></Button>
+  </View>)
+  }
+
+  const _showChoosePinLock = () => { 
+    setPINCodeStatus('choose');
+    setShowPinLock(true);
+  }; 
+
+    const PinScreen=()=>{
+      return (
+        <PINCode 
+        status={PINCodeStatus} 
+        //colorCircleButtons={'rgb(255,202,40)'}
+        touchIDDisabled={true} 
+        finishProcess={_finishProcess} 
+        textDescriptionLockedPage={'Ha alcanzado el número máximo de intentos'}
+        textTitleLockedPage={'PIN Incorrecto'}
+        textSubDescriptionLockedPage={' '}
+        styleLockScreenMainContainer={{backgroundColor:'rgba(114, 160, 199, 0.9);'}}
+        stylePinCodeDeleteButtonIcon={'backspace'}
+        iconButtonDeleteDisabled={true}
+        buttonDeleteText={'BORRAR'}
+        titleEnter={'Ingrese su PIN'}
+        titleChoose={'Introduzca un PIN de seguridad'}
+        subtitleChoose={'para proteger sus transacciones'}
+        />)}
+
+    const Logged=()=>{
+      return (
+        <View style={styles.view}>
+          <Text style={styles.text}> USER LOGGED</Text>
+          <Button 
+          onPress={_showEnterPinLock} 
+          title="Log in"></Button>
+      </View>
+      )}
+
+  const  _finishProcess = async () => {
+    const hasPin = await hasUserSetPinCode();
+    if (hasPin && PINCodeStatus==='enter') {
+      alert("You have successfully entered your pin.", [
+        {
+          title: "Ok",
+          onPress: () => {
+            // do nothing
+          },
+        },
+      ]);
+      setBiometricType('Logged');
+      setShowPinLock(false);
+    } else if (hasPin && PINCodeStatus==='chose') {
+      alert("You have successfully set your pin.", [
+        {
+          title: "Ok",
+          onPress: () => {
+            // do nothing
+          },
+        },
+      ]);
+      setBiometricType('Biom2');
+      setShowPinLock(false);
+    }else{
+      setPINCodeStatus("locked");
+    }
+  };
+
+  const _showEnterPinLock = async () => {
+    const hasPin = await hasUserSetPinCode();
+    if (hasPin) {
+      setPINCodeStatus('enter');
+      setShowPinLock(true);
+    } else {
+      alert( "You have not set your pin.", [
+        {
+          title: "Ok",
+          onPress: () => {
+            // do nothing
+          },
+        },
+      ]);
+      _showChoosePinLock();
+    }
+  };
 
 
   const sensorExists=()=>{
@@ -104,12 +189,12 @@ function App() {
    
       if (keysExist) {
         console.log('Keys exist')
-        alert('Keys exist')
+        //alert('Keys exist')
         createSignature();
   
       } else {
         console.log('Keys do not exist or were deleted')
-        alert('Keys do not exist or were deleted')
+        //alert('Keys do not exist or were deleted')
         createKeys();
       }
     })
@@ -120,10 +205,25 @@ function App() {
     const { publicKey } = resultObject
     console.log(publicKey,'publicKey')
     setKeyPublic(publicKey);
-    createSignature();
-    //const token=jsonWebToken.sign(publicKey,myJWTSecretKey);
-    //console.log(token,'token');
-    //setValidToken(token); 
+    //createSignature();
+    alert("El equipo cuenta con una huella registrada", [
+      {
+        title: "Ok",
+        onPress: () => {
+          // do nothing
+        },
+      },
+    ]);
+  })
+  .catch((err)=>{
+    alert("Activa tus datos biométricos en tu celular. Ingresá a configuración o ajustes de tu dispositivo y activa tus opciones de seguridad", [
+      {
+        title: "Ok",
+        onPress: () => {
+          // do nothing
+        },
+      },
+    ]);
   })
 }
 
@@ -141,118 +241,38 @@ function App() {
         if (success) {
           console.log(success,signature)
           setBiometricType('Logged');
-          //const tokenDecodedData=jsonWebToken.verify(validToken,myJWTSecretKey);
-          //console.log(tokenDecodedData);
-          //if(tokenDecodedData.MAIL==MAIL){
-  
-          //verifySignatureWithServer(signature, payload) 
         }
       })
+      .catch((err)=>{
+        _showEnterPinLock();
+      }) 
   }
    
 
     useEffect(() => {
       borrarKeys();
       sensorExists();
-      if(biometricType!='None'){
+      /* if(biometricType!='None'){
         keysExist()
       }else{
-      }
+      } */
     }, [])
 
     return(<>
-    {biometricType==='TouchID' && <Touch/>}
-    {biometricType==='FaceID' && <Face/>}
-    {biometricType==='Biometric' && <Biom/>}
-    {biometricType==='None' && <User/>}
-    {biometricType==='Logged' && <Logged/>}
-
-  
+    {biometricType==='TouchID' && showPinLock===false && <Touch/>}
+    {biometricType==='FaceID' && showPinLock===false  && <Face/>}
+    {biometricType==='Biometric' && showPinLock===false && <Biom/>}
+    {biometricType==='None' && showPinLock===false  && <User/>}
+    {biometricType==='Logged' && showPinLock===false  && <Logged/>}
+    {biometricType==='Biom2' && showPinLock===false  && <Biom2/>}
+    {showPinLock===true && <PinScreen/>}
       </>
     )
-
 
   /*const Inicio=resultObject.available && resultObject.biometryType === ReactNativeBiometrics.TouchID ? Touchid :
   resultObject.available && resultObject.biometryType === ReactNativeBiometrics.FaceID ? Faceid:
   resultObject.available && resultObject.biometryType === ReactNativeBiometrics.Biometrics? Bioid: UserPass;*/
-
-  
-    
 }
-
-
-
-/*function App() {
-
-  /*ReactNativeBiometrics.deleteKeys()
-  .then((success) => {
-    if (success) {
-      console.log('Successful deletion')
-      alert('Successful deletion')
-    } else {
-      console.log('Unsuccessful deletion')
-      alert('Unsuccessful deletion')
-    }
-  })
-
-  ReactNativeBiometrics.isSensorAvailable()
-  .then((resultObject) => {
-    const { available, biometryType,error } = resultObject
-    console.log(resultObject);
-    if (available && biometryType === ReactNativeBiometrics.TouchID) {
-      console.log('TouchID is supported')
-      //alert('TouchID is supported')
-    } else if (available && biometryType === ReactNativeBiometrics.FaceID) {
-      console.log('FaceID is supported')
-      //alert('FaceID is supported')
-    } else if (available && biometryType === ReactNativeBiometrics.Biometrics) {
-      console.log('Biometrics is supported')
-     // alert('Biometrics is supported')
-    } else {
-      console.log('Biometrics not supported')
-      //alert('Biometrics not supported')
-    }
-  })
-
-  const Touchid=()=>{
-    return <div>
-        Hello World TOUCH ID
-    </div>
-  }
-
-  const Faceid=()=>{
-    return <div>
-        Hello World FACE ID
-    </div>
-  }
-
-  const Bioid=()=>{
-    return <div>
-        Hello World BIOMETRICS
-    </div>
-  }
-
-  const UserPass=()=>{
-    return <div>
-        USER/PASS
-    </div>
-  }
-
-  const Inicio=available && biometryType === ReactNativeBiometrics.TouchID ? Touchid :
-               available && biometryType === ReactNativeBiometrics.FaceID ? Faceid:
-               available && biometryType === ReactNativeBiometrics.Biometrics? Bioid: UserPass;
-  
-  return (
-    <>
-      <View style={styles.view}>
-        <Text style={styles.text}> Hello WorldD</Text>
-        <Button 
-        onPress={borrarKeys} 
-        title="Log in"></Button>
-      </View>
-    </>
-  )
-}*/
 
  const styles = StyleSheet.create({
   view:{
